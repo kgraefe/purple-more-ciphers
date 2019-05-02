@@ -1,0 +1,201 @@
+/* Copyright (C) 2019 Konrad Gräfe <konradgraefe@aol.com>
+ *
+ * This software may be modified and distributed under the terms
+ * of the GPLv2 license. See the COPYING file for details.
+ */
+
+#ifndef _MSC_VER
+#define _MSC_VER 0
+#endif
+#include <argon2.h>
+
+#include "plugin.h"
+
+static void
+argon2_init(PurpleCipherContext *context, gpointer extra) {
+	argon2_context *ctx;
+
+	ctx = g_new0(argon2_context, 1);
+	purple_cipher_context_set_data(context, ctx);
+	purple_cipher_context_reset(context, extra);
+}
+
+static void
+argon2_reset(PurpleCipherContext *context, gpointer extra) {
+	argon2_context *ctx = purple_cipher_context_get_data(context);
+
+	if(ctx->pwd) {
+		g_free(ctx->pwd);
+	}
+	if(ctx->salt) {
+		g_free(ctx->salt);
+	}
+
+	memset(ctx, 0, sizeof(argon2_context));
+	ctx->outlen = 32;
+	ctx->saltlen = 8;
+	ctx->t_cost = 2;         /* 2 passes */
+	ctx->m_cost = (1 << 16); /* 64 MiB memory cost (in KiB) */
+	ctx->lanes = 1;          /* number of lanes */
+	ctx->threads = 1;        /* number of threads */
+	ctx->version = ARGON2_VERSION_13;
+	ctx->flags = ARGON2_DEFAULT_FLAGS;
+}
+
+static void
+argon2_uninit(PurpleCipherContext *context) {
+	argon2_context *ctx = purple_cipher_context_get_data(context);
+
+	purple_cipher_context_reset(context, NULL);
+
+	memset(ctx, 0, sizeof(argon2_context));
+	g_free(ctx);
+}
+
+static void
+argon2_set_option(PurpleCipherContext *context, const gchar *name, void *value) {
+	argon2_context *ctx = purple_cipher_context_get_data(context);
+
+	if(purple_strequal(name, "outlen")) {
+		ctx->outlen = GPOINTER_TO_INT(value);
+	}
+	if(purple_strequal(name, "saltlen")) {
+		ctx->saltlen = GPOINTER_TO_INT(value);
+	}
+	if(purple_strequal(name, "passes")) {
+		ctx->t_cost = GPOINTER_TO_INT(value);
+	}
+	if(purple_strequal(name, "memory")) { /* in KiB */
+		ctx->m_cost = GPOINTER_TO_INT(value);
+	}
+	if(purple_strequal(name, "lanes")) {
+		ctx->lanes = GPOINTER_TO_INT(value);
+	}
+	if(purple_strequal(name, "threads")) {
+		ctx->threads = GPOINTER_TO_INT(value);
+	}
+}
+
+static void *
+argon2_get_option(PurpleCipherContext *context, const gchar *name) {
+	argon2_context *ctx = purple_cipher_context_get_data(context);
+
+	if(purple_strequal(name, "outlen")) {
+		return GINT_TO_POINTER(ctx->outlen);
+	}
+	if(purple_strequal(name, "saltlen")) {
+		return GINT_TO_POINTER(ctx->saltlen);
+	}
+	if(purple_strequal(name, "passes")) {
+		return GINT_TO_POINTER(ctx->t_cost);
+	}
+	if(purple_strequal(name, "memory")) { /* in KiB */
+		return GINT_TO_POINTER(ctx->m_cost);
+	}
+	if(purple_strequal(name, "lanes")) {
+		return GINT_TO_POINTER(ctx->lanes);
+	}
+	if(purple_strequal(name, "threads")) {
+		return GINT_TO_POINTER(ctx->threads);
+	}
+
+	return NULL;
+}
+
+static void
+argon2_set_salt(PurpleCipherContext *context, guchar *salt) {
+	argon2_context *ctx = purple_cipher_context_get_data(context);
+
+	/* This is where it gets a bit ugly as libpurple lacks a length parameter
+	 * here. We rely on the user to set the saltlen option beforehand.
+	 */
+
+	if(ctx->salt) {
+		g_free(ctx->salt);
+	}
+	ctx->salt = g_memdup(salt, ctx->saltlen);
+}
+
+static size_t
+argon2_get_salt_size(PurpleCipherContext *context) {
+	argon2_context *ctx = purple_cipher_context_get_data(context);
+	return ctx->saltlen;
+}
+
+static void
+argon2_append(PurpleCipherContext *context, const guchar *data, size_t len) {
+	argon2_context *ctx = purple_cipher_context_get_data(context);
+
+	ctx->pwd = g_realloc(ctx->pwd, ctx->pwdlen + len);
+	memcpy(ctx->pwd + len, data, len);
+	ctx->pwdlen += len;
+}
+
+static gboolean
+argon2_digest(
+	PurpleCipherContext *context, size_t in_len,
+	guchar digest[], size_t *out_len,
+	argon2_type type
+) {
+	argon2_context *ctx = purple_cipher_context_get_data(context);
+	int i, ret;
+	uint32_t r;
+
+	if(!ctx->salt) {
+		ctx->salt = g_malloc(ctx->saltlen);
+		r = g_random_int();
+		for(i = 0; i < ctx->saltlen; i++) {
+			if((i % 4) == 0) {
+				r = g_random_int();
+			}
+			ctx->salt[i] = (r & 0xFF);
+			r >>= 8;
+		}
+	}
+
+	ret = argon2_ctx(ctx, type);
+	if(ret != ARGON2_OK) {
+		error("Could not get argon2 digest: %s\n", argon2_error_message(ret));
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+#define GENERATE_CIPHER(name, type) \
+	static gboolean name ## _digest( \
+		PurpleCipherContext *context, size_t in_len, \
+		guchar digest[], size_t *out_len \
+	) { \
+		return argon2_digest(context, in_len, digest, out_len, type); \
+	} \
+	static PurpleCipherOps name ## _ops = { \
+		argon2_set_option,    /* Set Option       */ \
+		argon2_get_option,    /* Get Option       */ \
+		argon2_init,          /* init             */ \
+		argon2_reset,         /* reset            */ \
+		argon2_uninit,        /* uninit           */ \
+		NULL,                 /* set iv           */ \
+		argon2_append,        /* append           */ \
+		name ## _digest,      /* digest           */ \
+		NULL,                 /* encrypt          */ \
+		NULL,                 /* decrypt          */ \
+		argon2_set_salt,      /* set salt         */ \
+		argon2_get_salt_size, /* get salt size    */ \
+		NULL,                 /* set key          */ \
+		NULL,                 /* get key size     */ \
+		NULL,                 /* set batch mode */ \
+		NULL,                 /* get batch mode */ \
+		NULL,                 /* get block size */ \
+		NULL                  /* set key with len */ \
+	}
+GENERATE_CIPHER(argon2d, Argon2_d);
+GENERATE_CIPHER(argon2i, Argon2_i);
+GENERATE_CIPHER(argon2id, Argon2_id);
+
+const struct CipherDesc argon2_ciphers[] = {
+	{"argon2d", &argon2d_ops},
+	{"argon2i", &argon2i_ops},
+	{"argon2id", &argon2id_ops},
+	{NULL}
+};

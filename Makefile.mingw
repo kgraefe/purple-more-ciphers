@@ -15,6 +15,7 @@ DEP=$(SRC:%.c=%.d)
 CFLAGS += -MMD -MP
 
 CFLAGS += -I$(PLUGIN_TOP)
+CFLAGS += -I$(PLUGIN_TOP)/src/argon2/include
 CFLAGS += -I$(PURPLE_TOP)
 CFLAGS += -I$(GTK_TOP)/include
 CFLAGS += -I$(GTK_TOP)/include/glib-2.0
@@ -28,8 +29,11 @@ all: build
 
 build: src/$(PLUGIN).dll $(LANG_CATALOGS)
 
-src/$(PLUGIN).dll: $(OBJ)
-	$(CC) -shared $(OBJ) $(DLL_LD_FLAGS) -o $@
+src/$(PLUGIN).dll: $(OBJ) src/argon2/libargon2.a
+	$(CC) -shared $+ $(DLL_LD_FLAGS) -o $@
+
+src/argon2/libargon2.a:
+	$(MAKE) CC="${CC}" AR="${AR}" -C src/argon2 libargon2.a
 
 $(OBJ): config.h
 
@@ -51,7 +55,8 @@ clean:
 	rm -f $(OBJ) $(DEP) src/$(PLUGIN).dll
 	rm -f config.h .stamp-version* 
 	test -e configure.ac.in && rm -f configure.ac
+	make -C src/argon2 clean
 
-.PHONY: all build clean
+.PHONY: all build clean src/argon2/libargon2.a
 
 -include $(DEP)
