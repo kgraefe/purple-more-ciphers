@@ -8,46 +8,18 @@
 
 extern const struct CipherDesc argon2_ciphers[];
 
-static GList *loaded = NULL;
-
-static GList *
-register_cipher(GList *loaded, const char *name, PurpleCipherOps *ops) {
-	PurpleCipher *c;
-
-	c = purple_ciphers_register_cipher(name, ops);
-	if(c) {
-		loaded = g_list_append(loaded, c);
-	}
-	return loaded;
-}
-
 static gboolean plugin_load(PurplePlugin *plugin) {
 	const struct CipherDesc *d;
 
 	for(d = argon2_ciphers; d->name; d++) {
-		loaded = register_cipher(loaded, d->name, d->ops);
+		purple_ciphers_register_cipher(d->name, d->ops);
 	}
 
-	debug("Additional ciphers loaded.\n");
 	return TRUE;
 }
 
 static gboolean plugin_unload(PurplePlugin *plugin) {
-	GList *l, *ll;
-	PurpleCipher *c;
-
-	for(l = loaded; l; l = ll) {
-		ll = l->next;
-
-		c = PURPLE_CIPHER(l->data);
-		loaded = g_list_remove(loaded, c);
-		purple_ciphers_unregister_cipher(c);
-	}
-	g_list_free(loaded);
-	loaded = NULL;
-
-	debug("Additional ciphers unloaded.\n");
-	return TRUE;
+	return FALSE;
 }
 
 static PurplePluginInfo info = {
