@@ -54,28 +54,28 @@ static PurplePluginInfo info = {
 	PURPLE_PLUGIN_MAGIC,
 	PURPLE_MAJOR_VERSION,
 	PURPLE_MINOR_VERSION,
-	PURPLE_PLUGIN_STANDARD,     /* type           */
-	NULL,                       /* ui_requirement */
-	0,                          /* flags          */
-	NULL,                       /* dependencies   */
-	PURPLE_PRIORITY_DEFAULT,    /* priority       */
+	PURPLE_PLUGIN_STANDARD,       /* type           */
+	NULL,                         /* ui_requirement */
+	PURPLE_PLUGIN_FLAG_INVISIBLE, /* flags          */
+	NULL,                         /* dependencies   */
+	PURPLE_PRIORITY_DEFAULT,      /* priority       */
 
-	PLUGIN_ID,                  /* id             */
-	"Additional ciphers",       /* name           */
-	PLUGIN_VERSION,             /* version        */
-	"Additional ciphers",       /* summary        */
-	"Additional ciphers",       /* description    */
-	PLUGIN_AUTHOR,              /* author         */
-	PLUGIN_WEBSITE,             /* homepage       */
+	PLUGIN_ID,                    /* id             */
+	"Additional ciphers",         /* name           */
+	PLUGIN_VERSION,               /* version        */
+	"Additional ciphers",         /* summary        */
+	"Additional ciphers",         /* description    */
+	PLUGIN_AUTHOR,                /* author         */
+	PLUGIN_WEBSITE,               /* homepage       */
 
-	plugin_load,                /* load           */
-	plugin_unload,              /* unload         */
-	NULL,                       /* destroy        */
+	plugin_load,                  /* load           */
+	plugin_unload,                /* unload         */
+	NULL,                         /* destroy        */
 
-	NULL,                       /* ui_info        */
-	NULL,                       /* extra_info     */
-	NULL,                       /* prefs_info     */
-	NULL,                       /* actions        */
+	NULL,                         /* ui_info        */
+	NULL,                         /* extra_info     */
+	NULL,                         /* prefs_info     */
+	NULL,                         /* actions        */
 	/* padding */
 	NULL,
 	NULL,
