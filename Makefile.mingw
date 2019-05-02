@@ -27,7 +27,7 @@ DLL_LD_FLAGS += \
 
 all: build
 
-build: src/$(PLUGIN).dll $(LANG_CATALOGS)
+build: src/$(PLUGIN).dll
 
 src/$(PLUGIN).dll: $(OBJ) src/argon2/libargon2.a
 	$(CC) -shared $+ $(DLL_LD_FLAGS) -o $@

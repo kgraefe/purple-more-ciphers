@@ -19,13 +19,6 @@ AC_DEFINE_UNQUOTED(PLUGIN_AUTHOR, ["Konrad Gräfe <konradgraefe@aol.com>"], [Aut
 
 # Checks for programs.
 AC_PROG_CC
-AC_PROG_LIBTOOL
-AC_PROG_INTLTOOL
-GETTEXT_PACKAGE=purple-more-ciphers
-AC_SUBST(GETTEXT_PACKAGE)
-AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, ["$GETTEXT_PACKAGE"], [Gettext package])
-ALL_LINGUAS="@@LANGUAGES@@"
-AM_GLIB_GNU_GETTEXT
 
 # Checks for libraries.
 PKG_CHECK_MODULES(purple, [purple >= 2.10.0], , [AC_MSG_ERROR(libpurple >= 2.10.0 required! Please make sure that libpurple development files are installed.)])
