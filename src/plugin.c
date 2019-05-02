@@ -33,10 +33,10 @@ static PurplePluginInfo info = {
 	PURPLE_PRIORITY_DEFAULT,      /* priority       */
 
 	PLUGIN_ID,                    /* id             */
-	"Additional ciphers",         /* name           */
+	"More ciphers for libpurple", /* name           */
 	PLUGIN_VERSION,               /* version        */
-	"Additional ciphers",         /* summary        */
-	"Additional ciphers",         /* description    */
+	"More ciphers for libpurple", /* summary        */
+	"More ciphers for libpurple", /* description    */
 	PLUGIN_AUTHOR,                /* author         */
 	PLUGIN_WEBSITE,               /* homepage       */
 

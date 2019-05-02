@@ -2,9 +2,9 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(purple-ciphers, @@VERSION@@)
+AC_INIT(purple-more-ciphers, @@VERSION@@)
 AM_INIT_AUTOMAKE([1.9 foreign tar-pax])
-AC_CONFIG_SRCDIR([src/ciphers.c])
+AC_CONFIG_SRCDIR([src/plugin.c])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -12,8 +12,8 @@ AC_CONFIG_MACRO_DIR([m4])
 #       break scripts/gen-mingw-config_h.sh on Windows.
 AC_DEFINE_UNQUOTED(PLUGIN_VERSION, ["@@VERSION@@"], [Version])
 AC_DEFINE_UNQUOTED(PLUGIN_WEBSITE, [""], [Website])
-AC_DEFINE_UNQUOTED(PLUGIN_ID, ["purple-kgraefe-ciphers"], [Pidgin internal plugin ID])
-AC_DEFINE_UNQUOTED(PLUGIN_STATIC_NAME, ["ciphers"], [Static name for debug output])
+AC_DEFINE_UNQUOTED(PLUGIN_ID, ["purple-kgraefe-more-ciphers"], [Pidgin internal plugin ID])
+AC_DEFINE_UNQUOTED(PLUGIN_STATIC_NAME, ["more-ciphers"], [Static name for debug output])
 AC_DEFINE_UNQUOTED(PLUGIN_AUTHOR, ["Konrad Gräfe <konradgraefe@aol.com>"], [Author])
 
 
@@ -21,7 +21,7 @@ AC_DEFINE_UNQUOTED(PLUGIN_AUTHOR, ["Konrad Gräfe <konradgraefe@aol.com>"], [Aut
 AC_PROG_CC
 AC_PROG_LIBTOOL
 AC_PROG_INTLTOOL
-GETTEXT_PACKAGE=purple-ciphers
+GETTEXT_PACKAGE=purple-more-ciphers
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, ["$GETTEXT_PACKAGE"], [Gettext package])
 ALL_LINGUAS="@@LANGUAGES@@"

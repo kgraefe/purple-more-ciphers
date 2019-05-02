@@ -1,4 +1,4 @@
-PLUGIN = purple-ciphers
+PLUGIN = purple-more-ciphers
 
 PLUGIN_TOP := .
 -include $(PLUGIN_TOP)/local.mak
