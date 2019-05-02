@@ -184,9 +184,9 @@ argon2_digest(
 		argon2_get_salt_size, /* get salt size    */ \
 		NULL,                 /* set key          */ \
 		NULL,                 /* get key size     */ \
-		NULL,                 /* set batch mode */ \
-		NULL,                 /* get batch mode */ \
-		NULL,                 /* get block size */ \
+		NULL,                 /* set batch mode   */ \
+		NULL,                 /* get batch mode   */ \
+		NULL,                 /* get block size   */ \
 		NULL                  /* set key with len */ \
 	}
 GENERATE_CIPHER(argon2d, Argon2_d);
