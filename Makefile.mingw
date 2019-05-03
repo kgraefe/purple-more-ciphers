@@ -29,8 +29,14 @@ all: build
 
 build: src/$(PLUGIN).dll
 
+tests: build tests/check.exe
+	bats tests/
+
 src/$(PLUGIN).dll: $(OBJ) libs/argon2/libargon2.a
 	$(CC) -shared $+ $(DLL_LD_FLAGS) -o $@
+
+tests/check.exe: tests/check.o
+	$(CC) $< $(DLL_LD_FLAGS) -o $@
 
 libs/argon2/libargon2.a:
 	$(MAKE) CC="${CC}" AR="${AR}" -C libs/argon2 libargon2.a
@@ -56,7 +62,8 @@ clean:
 	rm -f config.h .stamp-version* 
 	test -e configure.ac.in && rm -f configure.ac
 	make -C libs/argon2 clean
+	rm -f tests/check tests/*.[do]
 
-.PHONY: all build clean libs/argon2/libargon2.a
+.PHONY: all build tests clean libs/argon2/libargon2.a
 
 -include $(DEP)
