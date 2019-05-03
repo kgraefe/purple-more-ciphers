@@ -34,10 +34,10 @@ argon2_reset(PurpleCipherContext *context, gpointer extra) {
 	memset(ctx, 0, sizeof(argon2_context));
 	ctx->outlen = 32;
 	ctx->saltlen = 8;
-	ctx->t_cost = 2;         /* 2 passes */
-	ctx->m_cost = (1 << 16); /* 64 MiB memory cost (in KiB) */
-	ctx->lanes = 1;          /* number of lanes */
-	ctx->threads = 1;        /* number of threads */
+	ctx->t_cost = 3;    /* 3 passes (CPU cost) */
+	ctx->m_cost = 4096; /* 4 MiB memory cost (in KiB) */
+	ctx->lanes = 1;     /* number of lanes (parallelism) */
+	ctx->threads = 1;   /* number of threads (parallelism) */
 	ctx->version = ARGON2_VERSION_13;
 	ctx->flags = ARGON2_DEFAULT_FLAGS;
 }
