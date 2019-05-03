@@ -34,7 +34,7 @@ argon2_reset(PurpleCipherContext *context, gpointer extra) {
 	memset(ctx, 0, sizeof(argon2_context));
 	ctx->outlen = 32;
 	ctx->saltlen = 8;
-	ctx->t_cost = 3;    /* 3 passes (CPU cost) */
+	ctx->t_cost = 3;    /* 3 passes (time cost) */
 	ctx->m_cost = 4096; /* 4 MiB memory cost (in KiB) */
 	ctx->lanes = 1;     /* number of lanes (parallelism) */
 	ctx->threads = 1;   /* number of threads (parallelism) */
@@ -62,10 +62,10 @@ argon2_set_option(PurpleCipherContext *context, const gchar *name, void *value) 
 	if(purple_strequal(name, "saltlen")) {
 		ctx->saltlen = GPOINTER_TO_INT(value);
 	}
-	if(purple_strequal(name, "passes")) {
+	if(purple_strequal(name, "time-cost")) {
 		ctx->t_cost = GPOINTER_TO_INT(value);
 	}
-	if(purple_strequal(name, "memory")) { /* in KiB */
+	if(purple_strequal(name, "memory-cost")) { /* in KiB */
 		ctx->m_cost = GPOINTER_TO_INT(value);
 	}
 	if(purple_strequal(name, "lanes")) {
@@ -86,10 +86,10 @@ argon2_get_option(PurpleCipherContext *context, const gchar *name) {
 	if(purple_strequal(name, "saltlen")) {
 		return GINT_TO_POINTER(ctx->saltlen);
 	}
-	if(purple_strequal(name, "passes")) {
+	if(purple_strequal(name, "time-cost")) {
 		return GINT_TO_POINTER(ctx->t_cost);
 	}
-	if(purple_strequal(name, "memory")) { /* in KiB */
+	if(purple_strequal(name, "memory-cost")) { /* in KiB */
 		return GINT_TO_POINTER(ctx->m_cost);
 	}
 	if(purple_strequal(name, "lanes")) {
