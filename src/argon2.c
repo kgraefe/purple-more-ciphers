@@ -127,7 +127,7 @@ argon2_append(PurpleCipherContext *context, const guchar *data, size_t len) {
 	argon2_context *ctx = purple_cipher_context_get_data(context);
 
 	ctx->pwd = g_realloc(ctx->pwd, ctx->pwdlen + len);
-	memcpy(ctx->pwd + len, data, len);
+	memcpy(ctx->pwd + ctx->pwdlen, data, len);
 	ctx->pwdlen += len;
 }
 
@@ -140,6 +140,12 @@ argon2_digest(
 	argon2_context *ctx = purple_cipher_context_get_data(context);
 	int i, ret;
 	uint32_t r;
+
+	ctx->out = digest;
+	if(in_len < ctx->outlen) {
+		error("Could not get argon2 digest: buffer too small!\n");
+		return FALSE;
+	}
 
 	if(!ctx->salt) {
 		ctx->salt = g_malloc(ctx->saltlen);
@@ -157,6 +163,10 @@ argon2_digest(
 	if(ret != ARGON2_OK) {
 		error("Could not get argon2 digest: %s\n", argon2_error_message(ret));
 		return FALSE;
+	}
+
+	if(out_len) {
+		*out_len = ctx->outlen;
 	}
 
 	return TRUE;
