@@ -64,6 +64,6 @@ clean:
 	make -C libs/argon2 clean
 	rm -f tests/check tests/*.[do]
 
-.PHONY: all build tests clean libs/argon2/libargon2.a
+.PHONY: tests clean
 
 -include $(DEP)
