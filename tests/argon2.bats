@@ -33,3 +33,9 @@ digest() {
 	[ $status -eq 0 ]
 	[ "$(digest)" = "a8b9a5e5c6ea1403ba63154786b4811cfd1459dc6b23190d70cf1a317ddb9735" ]
 }
+
+@test "argon2i: No salt" {
+	run $CHECK -c argon2i -a hash -p "password"
+	[ $status -eq 1 ]
+	echo "$output" | grep -q "more-ciphers: Could not get argon2 digest: Salt is too short"
+}

@@ -33,7 +33,7 @@ argon2_reset(PurpleCipherContext *context, gpointer extra) {
 
 	memset(ctx, 0, sizeof(argon2_context));
 	ctx->outlen = 32;
-	ctx->saltlen = 8;
+	ctx->saltlen = 0;
 	ctx->t_cost = 3;    /* 3 passes (time cost) */
 	ctx->m_cost = 4096; /* 4 MiB memory cost (in KiB) */
 	ctx->lanes = 1;     /* number of lanes (parallelism) */
@@ -138,25 +138,12 @@ argon2_digest(
 	argon2_type type
 ) {
 	argon2_context *ctx = purple_cipher_context_get_data(context);
-	int i, ret;
-	uint32_t r;
+	int ret;
 
 	ctx->out = digest;
 	if(in_len < ctx->outlen) {
 		error("Could not get argon2 digest: buffer too small!\n");
 		return FALSE;
-	}
-
-	if(!ctx->salt) {
-		ctx->salt = g_malloc(ctx->saltlen);
-		r = g_random_int();
-		for(i = 0; i < ctx->saltlen; i++) {
-			if((i % 4) == 0) {
-				r = g_random_int();
-			}
-			ctx->salt[i] = (r & 0xFF);
-			r >>= 8;
-		}
 	}
 
 	ret = argon2_ctx(ctx, type);
