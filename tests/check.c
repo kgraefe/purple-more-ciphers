@@ -109,14 +109,13 @@ int main(int argc, char **argv) {
 	char c;
 	const char *cipherName = NULL, *action = NULL, *password = NULL;
 	char *salt = NULL;
-	char *digest = NULL;
+	char digest[4096];
 	char *plugindir = NULL;
 	char *pluginpath = NULL;
 	PurplePlugin *plugin;
 	PurpleCipher *cipher;
 	PurpleCipherContext *ctx = NULL;
 	int ret = EXIT_FAILURE;
-	size_t buflen;
 
 	argv0 = argv[0];
 	while((uint8_t)(c = getopt_long(
@@ -210,9 +209,9 @@ int main(int argc, char **argv) {
 			purple_cipher_context_set_salt(ctx, (guchar *)salt);
 		}
 
-		buflen = 2*32 + 1; /* TODO: Query ctx->outlen */
-		digest = g_malloc(buflen);
-		if(!purple_cipher_context_digest_to_str(ctx, buflen, digest, NULL)) {
+		if(!purple_cipher_context_digest_to_str(
+			ctx, sizeof(digest), digest, NULL
+		)) {
 			goto core_quit;
 		}
 		info("Digest: %s\n", digest);
@@ -231,7 +230,6 @@ core_quit:
 	purple_core_quit();
 
 	g_free(salt);
-	g_free(digest);
 	g_free(pluginpath);
 	g_free(plugindir);
 
