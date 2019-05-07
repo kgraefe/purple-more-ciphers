@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "config.h"
 
@@ -21,13 +22,14 @@
 
 const char *argv0;
 
-#define OPTSTRING "hc:a:p:s:"
+#define OPTSTRING "hc:a:p:s:o:"
 static struct option long_options[] = {
 	{"help",     no_argument,       0, 'h'},
 	{"cipher",   required_argument, 0, 'c'},
 	{"action",   required_argument, 0, 'a'},
 	{"password", required_argument, 0, 'p'},
 	{"salt",     required_argument, 0, 's'},
+	{"option",   required_argument, 0, 'o'},
 	{0}
 };
 
@@ -47,6 +49,9 @@ static void printhelp(void) {
 		"\nOptions:\n"
 		"    -d,--debug\n"
 		"        Enable debug output\n"
+		"    -o,--option name=value\n"
+		"        Set any integer option supported by the selcted cipher. May\n"
+		"        be used multiple times.\n"
 	);
 }
 
@@ -105,6 +110,36 @@ exit:
 #endif
 }
 
+static bool set_cipher_option(PurpleCipherContext *ctx, const char *arg) {
+	bool ret = false;
+	char *val, *opt = NULL, *t;
+	int intVal;
+
+	if(!ctx) {
+		goto exit;
+	}
+	val = strchr(arg, '=');
+	if(!val || val == arg) {
+		goto exit;
+	}
+
+	opt = g_strndup(arg, val - arg);
+	val++;
+
+	intVal = strtol(val, &t, 10);
+	if(t == val || *t != '\0' || intVal == LONG_MIN || intVal == LONG_MAX) {
+		goto exit;
+	}
+
+	purple_cipher_context_set_option(ctx, opt, GINT_TO_POINTER(intVal));
+
+	ret = true;
+
+exit:
+	g_free(opt);
+	return ret;
+}
+
 int main(int argc, char **argv) {
 	char c;
 	const char *cipherName = NULL, *action = NULL, *password = NULL;
@@ -140,6 +175,10 @@ int main(int argc, char **argv) {
 
 		case 's':
 			salt = g_strdup(optarg);
+			break;
+
+		case 'o':
+			/* Will be parsed later */
 			break;
 
 		default:
@@ -197,9 +236,24 @@ int main(int argc, char **argv) {
 		error("Could not load cipher %s!\n", cipherName);
 		goto core_quit;
 	}
+	ctx = purple_cipher_context_new(cipher, NULL);
+
+	/* Set cipher options */
+	optind = 1;
+	while((uint8_t)(c = getopt_long(
+		argc, argv, OPTSTRING, long_options, NULL
+	)) != 0xFF) {
+		switch(c) {
+		case 'o':
+			if(!set_cipher_option(ctx, optarg)) {
+				printhelp();
+				goto core_quit;
+			}
+			break;
+		}
+	}
 
 	if(purple_strequal(action, "hash")) {
-		ctx = purple_cipher_context_new(cipher, NULL);
 		purple_cipher_context_append(ctx, (guchar *)password, strlen(password));
 
 		if(salt) {
