@@ -25,9 +25,11 @@ argon2_reset(PurpleCipherContext *context, gpointer extra) {
 	argon2_context *ctx = purple_cipher_context_get_data(context);
 
 	if(ctx->pwd) {
+		memset(ctx->pwd, 0, ctx->pwdlen);
 		g_free(ctx->pwd);
 	}
 	if(ctx->salt) {
+		memset(ctx->salt, 0, ctx->saltlen);
 		g_free(ctx->salt);
 	}
 
@@ -54,25 +56,32 @@ argon2_uninit(PurpleCipherContext *context) {
 
 static void
 argon2_set_option(PurpleCipherContext *context, const gchar *name, void *value) {
+	int val = GPOINTER_TO_INT(value);
+
 	argon2_context *ctx = purple_cipher_context_get_data(context);
 
 	if(purple_strequal(name, "outlen")) {
-		ctx->outlen = GPOINTER_TO_INT(value);
+		ctx->outlen = val;
 	}
 	if(purple_strequal(name, "saltlen")) {
-		ctx->saltlen = GPOINTER_TO_INT(value);
+		if(ctx->salt && ctx->saltlen != val) {
+			memset(ctx->salt, 0, ctx->saltlen);
+			g_free(ctx->salt);
+			ctx->salt = NULL;
+		}
+		ctx->saltlen = val;
 	}
 	if(purple_strequal(name, "time-cost")) {
-		ctx->t_cost = GPOINTER_TO_INT(value);
+		ctx->t_cost = val;
 	}
 	if(purple_strequal(name, "memory-cost")) { /* in KiB */
-		ctx->m_cost = GPOINTER_TO_INT(value);
+		ctx->m_cost = val;
 	}
 	if(purple_strequal(name, "lanes")) {
-		ctx->lanes = GPOINTER_TO_INT(value);
+		ctx->lanes = val;
 	}
 	if(purple_strequal(name, "threads")) {
-		ctx->threads = GPOINTER_TO_INT(value);
+		ctx->threads = val;
 	}
 }
 
@@ -111,6 +120,7 @@ argon2_set_salt(PurpleCipherContext *context, guchar *salt) {
 	 */
 
 	if(ctx->salt) {
+		memset(ctx->salt, 0, ctx->saltlen);
 		g_free(ctx->salt);
 	}
 	ctx->salt = g_memdup(salt, ctx->saltlen);
