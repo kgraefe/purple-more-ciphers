@@ -25,6 +25,17 @@ load common
 	[ $status -eq 1 ]
 	echo "$output" | grep -q "more-ciphers: Could not get argon2 digest: Salt is too short"
 }
+@test "argon2i: No input" {
+	run $CHECK hash argon2i -s "736f6d6573616c74"
+	[ $status -eq 0 ]
+	[ "$(digest)" = "6dc177cba99db01ccac05c103c1cf5b22422c70ec89bae471f560f8c1d377fe0" ]
+}
+@test "argon2i: No salt and no key" {
+	run $CHECK hash argon2i
+	[ $status -eq 1 ]
+	echo "$output" | grep -q "more-ciphers: Could not get argon2 digest: Salt is too short"
+}
+
 @test "argon2i: 48 bit hash" {
 	run $CHECK hash argon2i \
 		-i "70617373776f7264" -s "736f6d6573616c74" -o "outlen=48"
