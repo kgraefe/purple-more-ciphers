@@ -22,12 +22,10 @@
 
 const char *argv0;
 
-#define OPTSTRING "hc:a:p:s:o:"
+#define OPTSTRING "i:s:o:"
+#define OPTINDRESET 3
 static struct option long_options[] = {
-	{"help",     no_argument,       0, 'h'},
-	{"cipher",   required_argument, 0, 'c'},
-	{"action",   required_argument, 0, 'a'},
-	{"password", required_argument, 0, 'p'},
+	{"input",    required_argument, 0, 'i'},
 	{"salt",     required_argument, 0, 's'},
 	{"option",   required_argument, 0, 'o'},
 	{0}
@@ -38,19 +36,17 @@ static void printhelp(void) {
 
 	printf(
 		"\nUsage:\n"
-		"    %s -h,--help\n"
-		"        Print this help text and exit.\n"
-		"    %s [options] -a hash -c cipher -p passwort [-s salt]\n"
-		"        Calculate hash of password using cipher and an optional salt.\n"
-		, argv0, argv0
+		"    %s [options] hash <algorithm> [-i <input>] [-s <salt>]\n"
+		"        Calculate a hash if <input> with and optional <salt> using\n"
+		"        <algorithm>. <input> and <salt> must be hexadecimal encoded byte\n"
+		"        arrays.\n"
+		, argv0
 	);
 
 	printf(
 		"\nOptions:\n"
-		"    -d,--debug\n"
-		"        Enable debug output\n"
 		"    -o,--option name=value\n"
-		"        Set any integer option supported by the selcted cipher. May\n"
+		"        Set any integer option supported by the selected cipher. May\n"
 		"        be used multiple times.\n"
 	);
 }
@@ -140,41 +136,117 @@ exit:
 	return ret;
 }
 
+static guchar *unhexlify(gchar *hex, size_t *bufLen) {
+	guchar *buf = NULL, *p;
+	guchar c;
+	size_t len;
+	int i;
+
+	len = strlen(hex);
+	if(len == 0 || len % 2 != 0) {
+		goto error;
+	}
+	*bufLen = len / 2;
+	buf = g_malloc(*bufLen);
+	if(!buf) {
+		goto error;
+	}
+	p = buf;
+
+	while(len) {
+		for(i = 0, c = 0; i < 2; i++, hex++, len--) {
+			c <<= 4;
+			switch(*hex) {
+			case '0'...'9':
+				c |= (*hex - '0');
+				break;
+			case 'A'...'F':
+				c |= 0xA + (*hex - 'A');
+				break;
+			case 'a'...'f':
+				c |= 0xA + (*hex - 'a');
+				break;
+			default:
+				goto error;
+			}
+		}
+		*p = c;
+		p++;
+	}
+
+	return buf;
+
+error:
+	g_free(buf);
+	return NULL;
+}
+static gchar *hexlify(guchar *buf, size_t bufLen) {
+	gchar *hex, *p;
+
+	hex = g_malloc(2 * bufLen + 1);
+	if(!hex) {
+		return NULL;
+	}
+	p = hex;
+
+	while(bufLen) {
+		sprintf(p, "%02x", *buf);
+		buf++;
+		bufLen--;
+		p += 2;
+	}
+
+	return hex;
+}
+
 int main(int argc, char **argv) {
+	int ret = EXIT_FAILURE;
 	char c;
-	const char *cipherName = NULL, *action = NULL, *password = NULL;
-	char *salt = NULL;
-	char digest[4096];
-	char *plugindir = NULL;
+	const gchar *action;
+	const gchar *algorithm;
+	guchar *input = NULL;
+	size_t inputLen;
+	guchar *salt = NULL;
+	size_t saltLen;
+	guchar output[4096];
+	size_t outputLen;
+	gchar *strout = NULL;
+
 	char *pluginpath = NULL;
+	char *plugindir = NULL;
 	PurplePlugin *plugin;
 	PurpleCipher *cipher;
 	PurpleCipherContext *ctx = NULL;
-	int ret = EXIT_FAILURE;
 
 	argv0 = argv[0];
+	if(argc < 3) {
+		printhelp();
+		return EXIT_FAILURE;
+	}
+	action = argv[1];
+	algorithm = argv[2];
+
+	optind = OPTINDRESET;
 	while((uint8_t)(c = getopt_long(
 		argc, argv, OPTSTRING, long_options, NULL
 	)) != 0xFF) {
 		switch(c) {
-		case 'h':
-			printhelp();
-			return EXIT_SUCCESS;
-
-		case 'c':
-			cipherName = optarg;
-			break;
-
-		case 'a':
-			action = optarg;
-			break;
-
-		case 'p':
-			password = optarg;
+		case 'i':
+			g_free(input);
+			input = unhexlify(optarg, &inputLen);
+			if(!input) {
+				printhelp();
+				goto exit;
+			}
 			break;
 
 		case 's':
-			salt = g_strdup(optarg);
+			g_free(salt);
+			salt = unhexlify(optarg, &saltLen);
+			if(!salt) {
+				printhelp();
+				goto exit;
+			}
 			break;
 
 		case 'o':
@@ -183,13 +255,8 @@ int main(int argc, char **argv) {
 
 		default:
 			printhelp();
-			return EXIT_FAILURE;
+			goto exit;
 		}
-	}
-
-	if(!cipherName || !action || !password) {
-		printhelp();
-		return EXIT_FAILURE;
 	}
 
 	g_log_set_always_fatal(G_LOG_LEVEL_CRITICAL);
@@ -201,9 +268,9 @@ int main(int argc, char **argv) {
 	purple_core_init("check");
 
 	/* Check that cipher is not yet loaded. */
-	cipher = purple_ciphers_find_cipher(cipherName);
+	cipher = purple_ciphers_find_cipher(algorithm);
 	if(cipher) {
-		error("Cipher %s is already loaded!\n", cipherName);
+		error("Cipher %s is already loaded!\n", algorithm);
 		goto core_quit;
 	}
 
@@ -231,15 +298,15 @@ int main(int argc, char **argv) {
 	}
 
 	/* Load cipher. */
-	cipher = purple_ciphers_find_cipher(cipherName);
+	cipher = purple_ciphers_find_cipher(algorithm);
 	if(!cipher) {
-		error("Could not load cipher %s!\n", cipherName);
+		error("Could not load cipher %s!\n", algorithm);
 		goto core_quit;
 	}
 	ctx = purple_cipher_context_new(cipher, NULL);
 
 	/* Set cipher options */
-	optind = 1;
+	optind = OPTINDRESET;
 	while((uint8_t)(c = getopt_long(
 		argc, argv, OPTSTRING, long_options, NULL
 	)) != 0xFF) {
@@ -254,21 +321,26 @@ int main(int argc, char **argv) {
 	}
 
 	if(purple_strequal(action, "hash")) {
-		purple_cipher_context_append(ctx, (guchar *)password, strlen(password));
-
 		if(salt) {
 			purple_cipher_context_set_option(ctx,
-				"saltlen", GINT_TO_POINTER(strlen(salt))
+				"saltlen", GINT_TO_POINTER(saltLen)
 			);
-			purple_cipher_context_set_salt(ctx, (guchar *)salt);
+			purple_cipher_context_set_salt(ctx, salt);
+		}
+		if(input) {
+			purple_cipher_context_append(ctx, input, inputLen);
 		}
 
-		if(!purple_cipher_context_digest_to_str(
-			ctx, sizeof(digest), digest, NULL
+
+		if(!purple_cipher_context_digest(
+			ctx, sizeof(output), output, &outputLen
 		)) {
 			goto core_quit;
 		}
-		info("Digest: %s\n", digest);
+
+
+		strout = hexlify(output, outputLen);
+		info("Digest: %s\n", strout);
 	} else {
 		error("Unknown action %s\n", action);
 		goto core_quit;
@@ -283,9 +355,12 @@ core_quit:
 	}
 	purple_core_quit();
 
-	g_free(salt);
+exit:
+	g_free(strout);
 	g_free(pluginpath);
 	g_free(plugindir);
+	g_free(input);
+	g_free(salt);
 
 	return ret;
 }
