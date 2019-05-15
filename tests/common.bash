@@ -15,5 +15,3 @@ fi
 digest() {
 	echo "$output" | awk 'BEGIN {RS="\r\n|\n"} /test: Digest:/ {$4=$4; printf "%s",$4}'
 }
-
-

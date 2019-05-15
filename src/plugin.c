@@ -7,11 +7,15 @@
 #include "plugin.h"
 
 extern const struct CipherDesc argon2_ciphers[];
+extern const struct CipherDesc aes_ciphers[];
 
 static gboolean plugin_load(PurplePlugin *plugin) {
 	const struct CipherDesc *d;
 
 	for(d = argon2_ciphers; d->name; d++) {
+		purple_ciphers_register_cipher(d->name, d->ops);
+	}
+	for(d = aes_ciphers; d->name; d++) {
 		purple_ciphers_register_cipher(d->name, d->ops);
 	}
 

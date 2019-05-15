@@ -22,11 +22,14 @@
 
 const char *argv0;
 
-#define OPTSTRING "i:s:o:"
+#define OPTSTRING "i:s:k:I:t:o:"
 #define OPTINDRESET 3
 static struct option long_options[] = {
 	{"input",    required_argument, 0, 'i'},
 	{"salt",     required_argument, 0, 's'},
+	{"key",      required_argument, 0, 'k'},
+	{"iv",       required_argument, 0, 'I'},
+	{"taglen",   required_argument, 0, 't'},
 	{"option",   required_argument, 0, 'o'},
 	{0}
 };
@@ -40,7 +43,15 @@ static void printhelp(void) {
 		"        Calculate a hash if <input> with and optional <salt> using\n"
 		"        <algorithm>. <input> and <salt> must be hexadecimal encoded byte\n"
 		"        arrays.\n"
-		, argv0
+		"    %s [options] encrypt <algorithm> [-i <input>] [-k <key>] [-I <iv>]\n"
+		"        Encrypts <input> with <algorithm> using an optional <key> and\n"
+		"        <iv>. All parameters except <algorithm> must be hexadecimal\n"
+		"        encoded byte arrays.\n"
+		"    %s [options] decrypt <algorithm> [-i <input>] [-k <key>] [-I <iv>] [-t <taglen>]\n"
+		"        Encrypts <input> with <algorithm> using an optional <key>, <iv>\n"
+		"        and <taglen>. <input>, <key> and <iv> must be hexadecimal encoded\n"
+		"        byte arrays.\n"
+		, argv0, argv0, argv0
 	);
 
 	printf(
@@ -106,9 +117,18 @@ exit:
 #endif
 }
 
+static bool parse_int(const char *val, int *intVal) {
+	char *t;
+
+	*intVal = strtol(val, &t, 10);
+	if(t == val || *t != '\0' || *intVal == LONG_MIN || *intVal == LONG_MAX) {
+		return false;
+	}
+	return true;
+}
 static bool set_cipher_option(PurpleCipherContext *ctx, const char *arg) {
 	bool ret = false;
-	char *val, *opt = NULL, *t;
+	char *val, *opt = NULL;
 	int intVal;
 
 	if(!ctx) {
@@ -122,8 +142,7 @@ static bool set_cipher_option(PurpleCipherContext *ctx, const char *arg) {
 	opt = g_strndup(arg, val - arg);
 	val++;
 
-	intVal = strtol(val, &t, 10);
-	if(t == val || *t != '\0' || intVal == LONG_MIN || intVal == LONG_MAX) {
+	if(!parse_int(val, &intVal)) {
 		goto exit;
 	}
 
@@ -208,6 +227,9 @@ int main(int argc, char **argv) {
 	size_t inputLen;
 	guchar *salt = NULL;
 	size_t saltLen;
+	guchar *key = NULL, *iv = NULL;
+	size_t keyLen, ivLen;
+	int tagLen = -1;
 	guchar output[4096];
 	size_t outputLen;
 	gchar *strout = NULL;
@@ -244,6 +266,31 @@ int main(int argc, char **argv) {
 			g_free(salt);
 			salt = unhexlify(optarg, &saltLen);
 			if(!salt) {
+				printhelp();
+				goto exit;
+			}
+			break;
+
+		case 'k':
+			g_free(key);
+			key = unhexlify(optarg, &keyLen);
+			if(!key) {
+				printhelp();
+				goto exit;
+			}
+			break;
+
+		case 'I':
+			g_free(iv);
+			iv = unhexlify(optarg, &ivLen);
+			if(!iv) {
+				printhelp();
+				goto exit;
+			}
+			break;
+
+		case 't':
+			if(!parse_int(optarg, &tagLen)) {
 				printhelp();
 				goto exit;
 			}
@@ -341,6 +388,47 @@ int main(int argc, char **argv) {
 
 		strout = hexlify(output, outputLen);
 		info("Digest: %s\n", strout);
+	} else if(purple_strequal(action, "encrypt")) {
+		if(key) {
+			purple_cipher_context_set_key_with_len(ctx, key, keyLen);
+		}
+		if(iv) {
+			purple_cipher_context_set_iv(ctx, iv, ivLen);
+		}
+		if(tagLen >= 0) {
+			purple_cipher_context_set_option(ctx,
+				"taglen", GINT_TO_POINTER(tagLen)
+			);
+		}
+		if(purple_cipher_context_encrypt(ctx,
+			input, inputLen, output, &outputLen
+		) < 0) {
+			goto core_quit;
+		}
+
+		strout = hexlify(output, outputLen);
+		info("Digest: %s\n", strout);
+	} else if(purple_strequal(action, "decrypt")) {
+		if(key) {
+			purple_cipher_context_set_key_with_len(ctx, key, keyLen);
+		}
+		if(iv) {
+			purple_cipher_context_set_iv(ctx, iv, ivLen);
+		}
+		if(tagLen >= 0) {
+			purple_cipher_context_set_option(ctx,
+				"taglen", GINT_TO_POINTER(tagLen)
+			);
+		}
+
+		if(purple_cipher_context_decrypt(ctx,
+			input, inputLen, output, &outputLen
+		) < 0) {
+			goto core_quit;
+		}
+
+		strout = hexlify(output, outputLen);
+		info("Digest: %s\n", strout);
 	} else {
 		error("Unknown action %s\n", action);
 		goto core_quit;
@@ -361,6 +449,8 @@ exit:
 	g_free(plugindir);
 	g_free(input);
 	g_free(salt);
+	g_free(key);
+	g_free(iv);
 
 	return ret;
 }
