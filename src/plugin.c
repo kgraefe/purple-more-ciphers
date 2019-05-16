@@ -59,5 +59,7 @@ static PurplePluginInfo info = {
 	NULL
 };
 
-static void init_plugin(PurplePlugin *plugin) {}
+static void init_plugin(PurplePlugin *plugin) {
+	info.dependencies = g_list_prepend(info.dependencies, "ssl-nss");
+}
 PURPLE_INIT_PLUGIN(PLUGIN_STATIC_NAME, init_plugin, info)
