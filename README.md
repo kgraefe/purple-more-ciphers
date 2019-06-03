@@ -41,6 +41,12 @@ Now you can build the plugin:
 
     make -f Makefile.mingw
 
+After installing [bats][4] you could also run our checks to verify the plugin
+is working for you:
+
+    make -f Makefile.mingw check
+
 [1]: https://developer.pidgin.im/wiki/BuildingWinPidgin
 [2]: http://repo.msys2.org/mingw/i686/mingw-w64-i686-argon2-20171227-4-any.pkg.tar.xz
 [3]: http://repo.msys2.org/mingw/i686/
+[4]: https://github.com/sstephenson/bats

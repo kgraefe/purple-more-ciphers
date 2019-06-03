@@ -32,7 +32,7 @@ all: build
 
 build: src/$(PLUGIN).dll
 
-tests: build tests/ciphertest.exe
+check: build tests/ciphertest.exe
 	bats tests/
 
 src/$(PLUGIN).dll: $(OBJ) $(ARGON2_TOP)/lib/libargon2.a
@@ -63,6 +63,6 @@ clean:
 	test -e configure.ac.in && rm -f configure.ac
 	rm -f tests/ciphertest.exe tests/*.[do]
 
-.PHONY: tests clean
+.PHONY: check clean
 
 -include $(DEP)
