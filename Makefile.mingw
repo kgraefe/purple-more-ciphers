@@ -4,6 +4,7 @@ PLUGIN_TOP := .
 -include $(PLUGIN_TOP)/local.mak
 PIDGIN_TREE_TOP ?= ../../..
 include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
+ARGON2_TOP=$(WIN32_DEV_TOP)/argon2-20171227/mingw32/
 
 PLUGIN_VERSION := $(shell ./scripts/gen-version.sh)
 PLUGIN_WIN32_ZIP := $(PLUGIN)-$(PLUGIN_VERSION)-win32.zip
@@ -15,7 +16,7 @@ DEP=$(SRC:%.c=%.d)
 CFLAGS += -MMD -MP
 
 CFLAGS += -I$(PLUGIN_TOP)
-CFLAGS += -I$(PLUGIN_TOP)/libs/argon2/include
+CFLAGS += -I$(ARGON2_TOP)/include
 CFLAGS += -I$(PURPLE_TOP)
 CFLAGS += -I$(GTK_TOP)/include
 CFLAGS += -I$(GTK_TOP)/include/glib-2.0
@@ -34,14 +35,11 @@ build: src/$(PLUGIN).dll
 tests: build tests/check.exe
 	bats tests/
 
-src/$(PLUGIN).dll: $(OBJ) libs/argon2/libargon2.a
+src/$(PLUGIN).dll: $(OBJ) $(ARGON2_TOP)/lib/libargon2.a
 	$(CC) -shared $+ $(DLL_LD_FLAGS) -o $@
 
 tests/check.exe: tests/check.o
 	$(CC) $< $(DLL_LD_FLAGS) -o $@
-
-libs/argon2/libargon2.a:
-	$(MAKE) CC="${CC}" AR="${AR}" -C libs/argon2 libargon2.a
 
 $(OBJ): config.h
 
@@ -63,7 +61,6 @@ clean:
 	rm -f $(OBJ) $(DEP) src/$(PLUGIN).dll
 	rm -f config.h .stamp-version* 
 	test -e configure.ac.in && rm -f configure.ac
-	make -C libs/argon2 clean
 	rm -f tests/check tests/*.[do]
 
 .PHONY: tests clean

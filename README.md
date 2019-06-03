@@ -8,6 +8,11 @@ In order to build the plugin for Windows an already-compiled source tree of
 Pidgin is required. Please see the [Pidgin for Windows Build
 Instructions][1] for details.
 
+Additionally you need to download
+[mingw-w64-i686-argon2-20171227-4-any.pkg.tar.xz][2] from [repo.msys2.org][3]
+and extract it into `argon2-20171227` in the `win32-dev` directory (the
+subdirectory must be created).
+
 After that you need to create a file named `local.mak` that points to the Pidgin
 source tree, e.g.:
 
@@ -18,3 +23,5 @@ Now you can build the plugin:
     make -f Makefile.mingw
 
 [1]: https://developer.pidgin.im/wiki/BuildingWinPidgin
+[2]: http://repo.msys2.org/mingw/i686/mingw-w64-i686-argon2-20171227-4-any.pkg.tar.xz
+[3]: http://repo.msys2.org/mingw/i686/
