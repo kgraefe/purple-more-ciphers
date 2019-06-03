@@ -10,18 +10,22 @@ extern const struct CipherDesc argon2_ciphers[];
 extern const struct CipherDesc aes_ciphers[];
 extern const struct CipherDesc nss_digest_ciphers[];
 
-static gboolean plugin_load(PurplePlugin *plugin) {
+static void register_ciphers(const struct CipherDesc ciphers[]) {
 	const struct CipherDesc *d;
 
-	for(d = argon2_ciphers; d->name; d++) {
+	for(d = ciphers; d->name; d++) {
+		if(purple_ciphers_find_cipher(d->name)) {
+			warning("Cipher '%s' is already loaded. Skipping.\n", d->name);
+			continue;
+		}
 		purple_ciphers_register_cipher(d->name, d->ops);
 	}
-	for(d = aes_ciphers; d->name; d++) {
-		purple_ciphers_register_cipher(d->name, d->ops);
-	}
-	for(d = nss_digest_ciphers; d->name; d++) {
-		purple_ciphers_register_cipher(d->name, d->ops);
-	}
+}
+
+static gboolean plugin_load(PurplePlugin *plugin) {
+	register_ciphers(argon2_ciphers);
+	register_ciphers(aes_ciphers);
+	register_ciphers(nss_digest_ciphers);
 
 	return TRUE;
 }

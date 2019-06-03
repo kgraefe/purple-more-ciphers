@@ -12,6 +12,8 @@
 
 #define debug(fmt, ...) \
 	purple_debug_info(PLUGIN_STATIC_NAME, fmt, ##__VA_ARGS__)
+#define warning(fmt, ...) \
+	purple_debug_warning(PLUGIN_STATIC_NAME, fmt, ##__VA_ARGS__)
 #define error(fmt, ...) \
 	purple_debug_error(PLUGIN_STATIC_NAME, fmt, ##__VA_ARGS__)
 
