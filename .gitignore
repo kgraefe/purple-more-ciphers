@@ -16,6 +16,8 @@
 /src/.deps
 /src/.libs
 
+/tests/ciphertest.exe
+
 Makefile
 config.h
 configure.ac

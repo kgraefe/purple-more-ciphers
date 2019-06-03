@@ -32,13 +32,13 @@ all: build
 
 build: src/$(PLUGIN).dll
 
-tests: build tests/check.exe
+tests: build tests/ciphertest.exe
 	bats tests/
 
 src/$(PLUGIN).dll: $(OBJ) $(ARGON2_TOP)/lib/libargon2.a
 	$(CC) -shared $+ $(DLL_LD_FLAGS) -o $@
 
-tests/check.exe: tests/check.o
+tests/ciphertest.exe: tests/ciphertest.o
 	$(CC) $< $(DLL_LD_FLAGS) -o $@
 
 $(OBJ): config.h
@@ -61,7 +61,7 @@ clean:
 	rm -f $(OBJ) $(DEP) src/$(PLUGIN).dll
 	rm -f config.h .stamp-version* 
 	test -e configure.ac.in && rm -f configure.ac
-	rm -f tests/check tests/*.[do]
+	rm -f tests/ciphertest.exe tests/*.[do]
 
 .PHONY: tests clean
 

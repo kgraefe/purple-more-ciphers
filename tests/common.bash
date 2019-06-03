@@ -1,4 +1,4 @@
-CHECK="${CHECK:-./tests/check}"
+CHECK="${CHECK:-$BATS_TEST_DIRNAME/ciphertest}"
 
 # The check executable uses libpurple and glib which both need even more
 # libraries. On Windows those are not installed globally so we try to borrow
