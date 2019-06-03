@@ -19,11 +19,35 @@ AC_DEFINE_UNQUOTED(PLUGIN_AUTHOR, ["Konrad Gräfe <konradgraefe@aol.com>"], [Aut
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_LIBTOOL
 
 # Checks for libraries.
-PKG_CHECK_MODULES(purple, [purple >= 2.10.0], , [AC_MSG_ERROR(libpurple >= 2.10.0 required! Please make sure that libpurple development files are installed.)])
-LIBS="$LIBS $purple_LIBS"
-CFLAGS="$CFLAGS $purple_CFLAGS -Wall -Werror-implicit-function-declaration"
+PKG_CHECK_MODULES(PURPLE, [purple >= 2.10.0], , [AC_MSG_ERROR([
+
+You must have libpurple 2.10.0 or newer development headers installed to build.
+
+If you have these installed already you may need to install pkg-config or set
+the environment variables PURPLE_LIBS and PURPLE_CFLAGS so I can find them.
+])])
+PKG_CHECK_MODULES(NSS, [nss >= 3.24], , [AC_MSG_ERROR([
+
+You must have libnss 3.24 or newer development headers installed to build.
+
+If you have these installed already you may need to install pkg-config or set
+the environment variables NSS_LIBS and NSS_CFLAGS so I can find them.
+])])
+PKG_CHECK_MODULES(ARGON2, [libargon2 >= 0~20161029], , [AC_MSG_ERROR([
+
+You must have libargon2 20161029 or newer development headers installed to
+build.
+
+If you have these installed already you may need to install pkg-config or set
+the environment variables ARGON2_LIBS and ARGON2_CFLAGS so I can find them.
+])])
+
+
+LIBS="$LIBS $PURPLE_LIBS $NSS_LIBS $ARGON2_LIBS"
+CFLAGS="$CFLAGS $PURPLE_CFLAGS $NSS_CFLAGS $ARGON2_CFLAGS -Wall -Werror-implicit-function-declaration"
 
 # Checks for header files.
 

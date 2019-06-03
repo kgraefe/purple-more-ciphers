@@ -3,6 +3,24 @@
 This plugin provides additional ciphers for libpurple clients such as Pidgin
 that can be used by other plugins.
 
+## Installation on Linux
+To install the plugin on Linux you need to extract a release tarball and
+compile it from source:
+
+    sudo apt install pidgin-dev libnss3-dev libargon2-0-dev
+    ./configure
+    make
+    sudo make install
+
+**Note:** By default the plugin will be installed to `/usr/local`.  If you
+installed Pidgin through your package manager, it is most likely installed into
+`/usr` (i.e. `which pidgin` returns `/usr/bin/pidgin`). Use
+`./configure --prefix=/usr` in this case.
+
+**Note:** When you use the repository directly or one of those auto-generated
+"Source code" archives, you need to run `./autogen.sh` before running
+`./configure`.
+
 ## Building on Windows
 In order to build the plugin for Windows an already-compiled source tree of
 Pidgin is required. Please see the [Pidgin for Windows Build
