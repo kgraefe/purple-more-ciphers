@@ -8,6 +8,6 @@ EXTRA_DIST = \
 	AUTHORS.md \
 	VERSION
 
-SUBDIRS = src
+SUBDIRS = src tests
 
 ACLOCAL_AMFLAGS = -I m4

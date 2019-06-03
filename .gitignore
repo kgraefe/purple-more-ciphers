@@ -16,6 +16,11 @@
 /src/.deps
 /src/.libs
 
+/test-driver
+/tests/.deps
+/tests/*.log
+/tests/*.trs
+/tests/ciphertest
 /tests/ciphertest.exe
 
 Makefile

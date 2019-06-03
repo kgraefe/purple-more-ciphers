@@ -58,6 +58,7 @@ CFLAGS="$CFLAGS $PURPLE_CFLAGS $NSS_CFLAGS $ARGON2_CFLAGS -Wall -Werror-implicit
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
+	tests/Makefile
 ])
 AC_OUTPUT
 

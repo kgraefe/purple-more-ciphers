@@ -7,9 +7,10 @@ that can be used by other plugins.
 To install the plugin on Linux you need to extract a release tarball and
 compile it from source:
 
-    sudo apt install pidgin-dev libnss3-dev libargon2-0-dev
+    sudo apt install bats pidgin-dev libnss3-dev libargon2-0-dev
     ./configure
     make
+    make check
     sudo make install
 
 **Note:** By default the plugin will be installed to `/usr/local`.  If you
