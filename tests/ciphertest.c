@@ -86,15 +86,19 @@ static PurpleEventLoopUiOps eventloop_ui_ops = {
 };
 
 static char *get_plugin_dir(void) {
-#ifdef _WIN32
 	char *exe = NULL;
 	char *exedir = NULL;
 	char *plugindir = NULL;
+
+#if defined(_WIN32)
 	wchar_t buf[MAXPATHLEN];
 
 	if(GetModuleFileNameW(GetModuleHandle(NULL), buf, MAXPATHLEN) > 0) {
 		exe = g_utf16_to_utf8(buf, -1, NULL, NULL, NULL);
 	}
+#else
+	exe = g_file_read_link("/proc/self/exe", NULL);
+#endif
 	if(!exe) {
 		goto exit;
 	}
@@ -104,17 +108,16 @@ static char *get_plugin_dir(void) {
 		goto exit;
 	}
 
+#if defined(_WIN32)
 	plugindir = g_build_filename(exedir, "..", "src", NULL);
+#else
+	plugindir = g_build_filename(exedir, "..", "src", ".libs", NULL);
+#endif
 
 exit:
 	g_free(exe);
 	g_free(exedir);
 	return plugindir;
-
-#else
-	/* TODO */
-	return NULL;
-#endif
 }
 
 static bool parse_int(const char *val, int *intVal) {
@@ -330,10 +333,20 @@ int main(int argc, char **argv) {
 	purple_plugins_add_search_path(plugindir);
 
 	pluginpath = g_build_filename(
-		plugindir, "purple-" PLUGIN_STATIC_NAME ".dll", NULL
+		plugindir,
+#if defined(_WIN32)
+		"purple-more-ciphers.dll",
+#else
+		"purple_more_ciphers.so",
+#endif
+		NULL
 	);
 
+#if defined(_WIN32)
 	purple_plugins_probe("dll");
+#else
+	purple_plugins_probe("so");
+#endif
 	plugin = purple_plugins_find_with_filename(pluginpath);
 	if(!plugin) {
 		error("Could not load %s!\n", pluginpath);
