@@ -145,6 +145,7 @@ aes_gcm_encrypt(
 	struct AESGCMContext *ctx = purple_cipher_context_get_data(context);
 	CK_GCM_PARAMS gcm_params;
 	SECItem param;
+	unsigned int ioutlen;
 
 	/* We assume that the output buffer length is input length + tag length. */
 
@@ -160,7 +161,7 @@ aes_gcm_encrypt(
 
 	if(PK11_Encrypt(
 		ctx->key, CKM_AES_GCM, &param,
-		output, outlen, len + ctx->taglen,
+		output, &ioutlen, len + ctx->taglen,
 		data, len
 	) != SECSuccess) {
 		error(
@@ -169,6 +170,8 @@ aes_gcm_encrypt(
 		);
 		return -1;
 	}
+
+	*outlen = ioutlen;
 
 	return 0;
 }
@@ -181,6 +184,7 @@ aes_gcm_decrypt(
 	struct AESGCMContext *ctx = purple_cipher_context_get_data(context);
 	CK_GCM_PARAMS gcm_params;
 	SECItem param;
+	unsigned int ioutlen;
 
 	/* Output buffer length must be ciphertext length, hence plaintext length
 	 * plus tag length.
@@ -198,7 +202,7 @@ aes_gcm_decrypt(
 
 	if(PK11_Decrypt(
 		ctx->key, CKM_AES_GCM, &param,
-		output, outlen, len,
+		output, &ioutlen, len,
 		data, len
 	) != SECSuccess) {
 		error(
@@ -207,6 +211,8 @@ aes_gcm_decrypt(
 		);
 		return -1;
 	}
+
+	*outlen = ioutlen;
 
 	return 0;
 }

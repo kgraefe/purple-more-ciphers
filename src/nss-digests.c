@@ -79,8 +79,9 @@ nss_digest_digest(
 	guchar digest[], size_t *out_len
 ) {
 	struct NSSDigestContext *ctx = purple_cipher_context_get_data(context);
+	unsigned int ioutlen;
 
-	if(PK11_DigestFinal(ctx->pk11, digest, out_len, in_len) != SECSuccess) {
+	if(PK11_DigestFinal(ctx->pk11, digest, &ioutlen, in_len) != SECSuccess) {
 		error(
 			"%s: Could not digest: %s",
 			ctx->name,
@@ -88,6 +89,8 @@ nss_digest_digest(
 		);
 		return FALSE;
 	}
+
+	*out_len = ioutlen;
 
 	return TRUE;
 }
