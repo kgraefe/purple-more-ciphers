@@ -4,9 +4,11 @@
  * of the GPLv2 license. See the COPYING file for details.
  */
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #define _WIN32_IE 0x501
 #include <Windows.h>
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
 #endif
 
 #include <purple.h>
@@ -95,6 +97,16 @@ static char *get_plugin_dir(void) {
 
 	if(GetModuleFileNameW(GetModuleHandle(NULL), buf, MAXPATHLEN) > 0) {
 		exe = g_utf16_to_utf8(buf, -1, NULL, NULL, NULL);
+	}
+#elif defined(__APPLE__)
+	uint32_t size = PATH_MAX + 1;
+
+	exe = g_malloc(size);
+	if(!exe) {
+		goto exit;
+	}
+	if(_NSGetExecutablePath(exe, &size) != 0) {
+		goto exit;
 	}
 #else
 	exe = g_file_read_link("/proc/self/exe", NULL);

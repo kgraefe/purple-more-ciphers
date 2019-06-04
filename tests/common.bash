@@ -13,5 +13,5 @@ if [[ $OSTYPE == cygwin* ]]; then
 fi
 
 digest() {
-	echo "$output" | awk 'BEGIN {RS="\r\n|\n"} /test: Digest:/ {$4=$4; printf "%s",$4}'
+	echo "$output" | tr -d '\r' | awk '/test: Digest:/ {$4=$4; printf "%s",$4}'
 }
