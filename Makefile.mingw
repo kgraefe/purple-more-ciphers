@@ -26,7 +26,7 @@ CFLAGS += -I$(NSS_TOP)/include
 DLL_LD_FLAGS += \
 	-L$(PURPLE_TOP) -lpurple \
 	-L$(GTK_TOP)/lib -lglib-2.0 \
-	-L$(NSS_TOP)/lib -lnss3 -lnspr4
+	-L$(NSS_TOP)/lib -lnss3 -lnspr4 -lssl3
 
 all: build
 
