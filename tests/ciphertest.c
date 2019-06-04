@@ -349,7 +349,7 @@ int main(int argc, char **argv) {
 #endif
 	plugin = purple_plugins_find_with_filename(pluginpath);
 	if(!plugin) {
-		error("Could not load %s!\n", pluginpath);
+		error("Could not find %s!\n", pluginpath);
 		goto core_quit;
 	}
 	if(!purple_plugin_load(plugin)) {
