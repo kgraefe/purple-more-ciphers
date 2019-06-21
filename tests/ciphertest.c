@@ -41,15 +41,15 @@ static void printhelp(void) {
 
 	printf(
 		"\nUsage:\n"
-		"    %s [options] hash <algorithm> [-i <input>] [-s <salt>]\n"
+		"    %s hash <algorithm> [-i <input>] [-s <salt>]\n"
 		"        Calculate a hash if <input> with and optional <salt> using\n"
 		"        <algorithm>. <input> and <salt> must be hexadecimal encoded byte\n"
 		"        arrays.\n"
-		"    %s [options] encrypt <algorithm> [-i <input>] [-k <key>] [-I <iv>]\n"
+		"    %s encrypt <algorithm> [-i <input>] [-k <key>] [-I <iv>]\n"
 		"        Encrypts <input> with <algorithm> using an optional <key> and\n"
 		"        <iv>. All parameters except <algorithm> must be hexadecimal\n"
 		"        encoded byte arrays.\n"
-		"    %s [options] decrypt <algorithm> [-i <input>] [-k <key>] [-I <iv>] [-t <taglen>]\n"
+		"    %s decrypt <algorithm> [-i <input>] [-k <key>] [-I <iv>] [-t <taglen>]\n"
 		"        Encrypts <input> with <algorithm> using an optional <key>, <iv>\n"
 		"        and <taglen>. <input>, <key> and <iv> must be hexadecimal encoded\n"
 		"        byte arrays.\n"
