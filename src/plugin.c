@@ -35,9 +35,6 @@ static void register_ciphers(const struct CipherDesc ciphers[]) {
 }
 
 static void ssl_nss_init_nss(void) {
-	static const PRIOMethods *_nss_methods = NULL;
-	static PRDescIdentity _identity;
-
 #if NSS_VMAJOR > 3 || ( NSS_VMAJOR == 3 && NSS_VMINOR >= 14 )
 	SSLVersionRange supported, enabled;
 #endif /* NSS >= 3.14 */
@@ -61,10 +58,6 @@ static void ssl_nss_init_nss(void) {
 
 	/** Disable OCSP Checking until we can make that use our HTTP & Proxy stuff */
 	CERT_EnableOCSPChecking(PR_FALSE);
-
-	_identity = PR_GetUniqueIdentity("Purple");
-	_nss_methods = PR_GetDefaultIOMethods();
-
 }
 
 static gboolean plugin_load(PurplePlugin *plugin) {
