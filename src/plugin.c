@@ -21,6 +21,7 @@
 extern const struct CipherDesc argon2_ciphers[];
 extern const struct CipherDesc aes_ciphers[];
 extern const struct CipherDesc nss_digest_ciphers[];
+extern const struct CipherDesc random_ciphers[];
 
 static void register_ciphers(const struct CipherDesc ciphers[]) {
 	const struct CipherDesc *d;
@@ -78,6 +79,7 @@ static gboolean plugin_load(PurplePlugin *plugin) {
 	register_ciphers(argon2_ciphers);
 	register_ciphers(aes_ciphers);
 	register_ciphers(nss_digest_ciphers);
+	register_ciphers(random_ciphers);
 
 	return TRUE;
 }
