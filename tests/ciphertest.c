@@ -133,12 +133,14 @@ exit:
 }
 
 static bool parse_int(const char *val, int *intVal) {
+	long l;
 	char *t;
 
-	*intVal = strtol(val, &t, 10);
-	if(t == val || *t != '\0' || *intVal == LONG_MIN || *intVal == LONG_MAX) {
+	l = strtol(val, &t, 10);
+	if(t == val || *t != '\0' || l <= INT_MIN || l >= INT_MAX) {
 		return false;
 	}
+	*intVal = l;
 	return true;
 }
 static bool set_cipher_option(PurpleCipherContext *ctx, const char *arg) {
